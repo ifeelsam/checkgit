@@ -3,5 +3,9 @@
 version = 4
 
 [[package]]
-name = "checkgit"
+name = "checkgit_core"
+version = "0.1.0"
+
+[[package]]
+name = "checkgit_tui"
 version = "0.1.0"
