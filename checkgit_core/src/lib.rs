@@ -10,7 +10,7 @@ pub struct UserProfile {
     pub username: String,
     pub display_name: Option<String>,
     pub bio: Option<String>,
-    pub avatar_ascii: String,
+    pub avatar_image: image::DynamicImage, 
     pub followers: u32,
     pub following: u32,
     pub repo_count: u32,
@@ -27,10 +27,10 @@ pub async fn get_user_profile(
 
     let user = github.fetch_user(username).await?;
 
-    let (repos, contributions, avatar_ascii) = tokio::try_join!(
+    let (repos, contributions, avatar_image) = tokio::try_join!(
         github.fetch_repos(username),
         github.fetch_contributions(username),
-        github.fetch_avatar_ascii(&user.avatar_url),
+        github.fetch_avatar_image(&user.avatar_url),
     )?;
 
     let total_stars = calculate_total_stars(&repos);
@@ -48,7 +48,7 @@ pub async fn get_user_profile(
         username: user.login,
         display_name: user.name,
         bio: user.bio,
-        avatar_ascii,
+        avatar_image,
         followers: user.followers,
         following: user.following,
         repo_count: user.public_repos,

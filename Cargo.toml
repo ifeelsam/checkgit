@@ -1,2 +1,2 @@
 [workspace]
-members = [ "checkgit", "checkgit_core"]
+members = ["checkgit", "checkgit_core"]

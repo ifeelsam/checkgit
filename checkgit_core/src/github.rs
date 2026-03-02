@@ -71,59 +71,27 @@ impl GithubClient {
         Ok(response.json::<Vec<GithubRepoResponse>>().await?)
     }
 
-    pub async fn fetch_avatar_ascii(&self, avatar_url: &str) -> Result<String, CheckGitError> {
+    pub async fn fetch_avatar_image(
+        &self,
+        avatar_url: &str,
+    ) -> Result<image::DynamicImage, CheckGitError> {
         let response = self.client.get(avatar_url).send().await?;
         let bytes = response.bytes().await?;
 
         let img = image::load_from_memory(&bytes)
             .map_err(|e| CheckGitError::ImageError(e.to_string()))?;
 
-        let width = 60;
-        let height = (width as f32 * 0.5) as u32;
+        // Center square crop
+        let size = img.width().min(img.height());
+        let cropped = img.crop_imm(
+            (img.width() - size) / 2,
+            (img.height() - size) / 2,
+            size,
+            size,
+        );
 
-        let img = img.resize(width, height, image::imageops::FilterType::Triangle);
-        let grayscale = img.to_luma8();
-
-        // Contrast normalization
-        let mut min = 255u8;
-        let mut max = 0u8;
-
-        for pixel in grayscale.pixels() {
-            let val = pixel[0];
-            if val < min {
-                min = val;
-            }
-            if val > max {
-                max = val;
-            }
-        }
-
-        let ascii_chars: Vec<char> =
-            "@$B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
-                .chars()
-                .collect();
-
-        let mut output = String::new();
-
-        for y in 0..grayscale.height() {
-            for x in 0..grayscale.width() {
-                let pixel = grayscale.get_pixel(x, y)[0];
-
-                let normalized = if max > min {
-                    (pixel.saturating_sub(min)) as f32 / (max - min) as f32
-                } else {
-                    0.0
-                };
-
-                let index = (normalized * (ascii_chars.len() - 1) as f32) as usize;
-                output.push(ascii_chars[index]);
-            }
-            output.push('\n');
-        }
-
-        Ok(output)
+        Ok(cropped)
     }
-
     pub async fn fetch_contributions(
         &self,
         username: &str,
