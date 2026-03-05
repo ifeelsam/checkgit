@@ -125,27 +125,28 @@ impl GithubClient {
         let token = self.token.as_ref().ok_or(CheckGitError::Unauthorized)?;
 
         let query = r#"
-        query($login: String!) {
-          user(login: $login) {
-            contributionsCollection {
+    query($login: String!) {
+      user(login: $login) {
+        contributionsCollection {
 
-              totalCommitContributions
-              totalIssueContributions
-              totalPullRequestContributions
-              totalPullRequestReviewContributions
-              totalRepositoriesWithContributedCommits
+          totalCommitContributions
+          totalIssueContributions
+          totalPullRequestContributions
+          totalPullRequestReviewContributions
+          totalRepositoriesWithContributedCommits
 
-              contributionCalendar {
-                weeks {
-                  contributionDays {
-                    contributionCount
-                  }
-                }
+          contributionCalendar {
+            weeks {
+              contributionDays {
+                contributionCount
               }
             }
           }
+
         }
-        "#;
+      }
+    }
+    "#;
 
         let body = serde_json::json!({
             "query": query,
@@ -177,15 +178,9 @@ impl GithubClient {
 
         let mut matrix: Vec<Vec<u32>> = vec![Vec::new(); 7];
 
-        for week in &weeks {
-            for day_index in 0..7 {
-                let value = week
-                    .contribution_days
-                    .get(day_index)
-                    .map(|d| d.contribution_count)
-                    .unwrap_or(0);
-
-                matrix[day_index].push(value);
+        for week in weeks {
+            for (day_index, day) in week.contribution_days.iter().enumerate() {
+                matrix[day_index].push(day.contribution_count);
             }
         }
 
