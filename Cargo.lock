@@ -147,7 +147,7 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 name = "checkgit"
 version = "0.1.0"
 dependencies = [
- "checkgit_core",
+ "checkgit_core 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "chrono",
  "clap",
  "colored",
@@ -161,6 +161,19 @@ dependencies = [
 [[package]]
 name = "checkgit_core"
 version = "0.1.0"
+dependencies = [
+ "image",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "checkgit_core"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3a57ebda12662c605a3ba47a2eb87f842d9fa5b55b6d7b1ceac6d3d02d9073c"
 dependencies = [
  "image",
  "reqwest",

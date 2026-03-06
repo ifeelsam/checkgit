@@ -10,7 +10,7 @@ keywords = ["github", "cli", "terminal"]
 categories = ["command-line-utilities"]
 
 [dependencies]
-checkgit_core = { path = "../checkgit_core" }
+checkgit_core = "0.1.0"
 clap = { version = "4.5.60", features = ["derive"] }
 colored = "3.1.1"
 dirs = "6.0.0"
