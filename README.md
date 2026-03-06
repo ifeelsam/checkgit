@@ -10,6 +10,8 @@ checkgit <username>
 
 and instantly see your profile, top repositories, contribution stats, and activity heatmap right inside your terminal.
 
+<img width="2678" height="1178" alt="image" src="https://github.com/user-attachments/assets/5563d6b2-2628-40f7-b468-e9b1994e1483" />
+
 ## Features
 
 * **GitHub profile overview**
