@@ -1,11 +1,12 @@
 use crate::helper::{clear_screen, move_cursor_right, move_cursor_up};
+use chrono::{Datelike, Duration, UTC};
 use colored::Colorize;
 use viuer::{Config, print};
 
-pub fn render(profile: checkgit_core::UserProfile) {
+pub fn render(profile: &checkgit_core::UserProfile) {
     clear_screen();
 
-    let avatar_width: u32 = 25;
+    let avatar_width: u32 = 35;
 
     print(
         &profile.avatar_image,
@@ -96,6 +97,42 @@ pub fn render(profile: checkgit_core::UserProfile) {
     println!();
 
     move_cursor_right(col);
+    println!("{}", "Contribution Stats".bold().truecolor(230, 237, 243));
+    move_cursor_right(col);
+    println!("{}", "─".repeat(34).truecolor(48, 54, 61));
+
+    move_cursor_right(col);
+    println!(
+        "{} {}",
+        "Commits:".truecolor(125, 133, 144),
+        profile.stats.commits
+    );
+
+    move_cursor_right(col);
+    println!(
+        "{} {}",
+        "PRs:".truecolor(125, 133, 144),
+        profile.stats.pull_requests
+    );
+
+    move_cursor_right(col);
+    println!(
+        "{} {}",
+        "Reviews:".truecolor(125, 133, 144),
+        profile.stats.reviews
+    );
+
+    move_cursor_right(col);
+    println!(
+        "{} {}",
+        "Issues:".truecolor(125, 133, 144),
+        profile.stats.issues
+    );
+
+    move_cursor_right(col);
+    println!();
+
+    move_cursor_right(col);
     println!("{}", "Popular repositories".bold().truecolor(230, 237, 243));
     move_cursor_right(col);
     println!("{}", "─".repeat(34).truecolor(48, 54, 61));
@@ -108,24 +145,17 @@ pub fn render(profile: checkgit_core::UserProfile) {
         println!("{}", stars.to_string().truecolor(125, 133, 144));
     }
 
-    let profile_lines_printed: u16 =
-        10 + profile.top_repos.len() as u16 + if profile.bio.is_some() { 1 } else { 0 };
-
-    let remaining = (avatar_height_rows as u16).saturating_sub(profile_lines_printed);
-    for _ in 0..remaining {
-        println!();
-    }
-
     println!();
-    render_heatmap(profile.contribution_matrix);
+    render_heatmap(&profile.contribution_matrix);
 }
 
-pub fn render_heatmap(matrix: Vec<Vec<u32>>) {
+pub fn render_heatmap(matrix: &[Vec<u32>]) {
     if matrix.is_empty() {
         return;
     }
 
-    let weeks = matrix.iter().map(|r| r.len()).max().unwrap_or(0);
+    let weeks = matrix[0].len();
+
     let total: u32 = matrix.iter().flatten().sum();
 
     println!(
@@ -153,25 +183,18 @@ pub fn render_heatmap(matrix: Vec<Vec<u32>>) {
         }
     }
 
-    let months = [
-        "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec", "Jan", "Feb", "Mar",
-    ];
-
-    let mut month_positions = vec![None; weeks];
-
-    for (i, m) in months.iter().enumerate() {
-        let pos = (i * weeks) / 12;
-        if pos < weeks {
-            month_positions[pos] = Some(*m);
-        }
-    }
+    let start = UTC::now() - Duration::weeks(52);
 
     print!("     ");
 
     for w in 0..weeks {
-        if let Some(m) = month_positions[w] {
-            print!("{}", m.truecolor(125, 133, 144));
-            for _ in 0..(3 - m.len()) {
+        let date = start + Duration::weeks(w as i64);
+
+        if date.day() <= 7 {
+            let label = date.format("%b").to_string();
+            print!("{}", label.truecolor(125, 133, 144));
+
+            for _ in 0..(3 - label.len()) {
                 print!(" ");
             }
         } else {
@@ -204,7 +227,6 @@ pub fn render_heatmap(matrix: Vec<Vec<u32>>) {
         println!();
     }
 
-
     println!();
 
     print!("{}", "Less ".truecolor(125, 133, 144));
@@ -217,9 +239,7 @@ pub fn render_heatmap(matrix: Vec<Vec<u32>>) {
 
     println!("{}", "More".truecolor(125, 133, 144));
 
-
     let mut longest = 0;
-    let mut current = 0;
     let mut running = 0;
 
     for week in 0..weeks {
@@ -239,7 +259,9 @@ pub fn render_heatmap(matrix: Vec<Vec<u32>>) {
         }
     }
 
-    for week in (0..weeks).rev() {
+    let mut current = 0;
+
+    'outer: for week in (0..weeks).rev() {
         for day in (0..7).rev() {
             let v = matrix
                 .get(day)
@@ -249,12 +271,9 @@ pub fn render_heatmap(matrix: Vec<Vec<u32>>) {
 
             if v > 0 {
                 current += 1;
-            } else {
-                break;
+            } else if current > 0 {
+                break 'outer;
             }
-        }
-        if current == 0 {
-            break;
         }
     }
 

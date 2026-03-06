@@ -31,7 +31,7 @@ async fn main() {
     }
 
     match get_user_profile(&username, token).await {
-        Ok(profile) => render(profile),
+        Ok(profile) => render(&profile),
         Err(e) => eprintln!("Error: {}", e),
     }
 }
